@@ -62,7 +62,7 @@ pub fn authorize<'b>(
     let mut pairs = params
         .iter()
         .filter(|&(k, _)| k.starts_with("oauth_"))
-        .map(|(k, v)| format!("{}=\"{}\"", k, encode(&v)))
+        .map(|(k, v)| format!("{}=\"{}\"", k, encode(v)))
         .collect::<Vec<_>>();
 
     pairs.sort();
@@ -100,7 +100,7 @@ fn encode(s: &str) -> String {
 fn to_query<'a>(params: &HashMap<&'static str, Cow<'a, str>>) -> String {
     let mut pairs: Vec<_> = params
         .iter()
-        .map(|(k, v)| format!("{}={}", encode(&k), encode(&v)))
+        .map(|(k, v)| format!("{}={}", encode(k), encode(v)))
         .collect();
 
     pairs.sort();
