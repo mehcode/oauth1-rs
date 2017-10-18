@@ -1,0 +1,11 @@
+[package]
+name = "oauth1"
+version = "0.1.0"
+authors = ["Ryan Leckey <leckey.ryan@gmail.com>"]
+
+[dependencies]
+time = "0.1"
+rand = "0.3"
+url = "1.5"
+ring = "0.12"
+base64 = "0.7.0"
