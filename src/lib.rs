@@ -1,7 +1,6 @@
 extern crate base64;
 extern crate rand;
-// extern crate ring;
-extern crate crypto;
+extern crate ring;
 extern crate time;
 extern crate url;
 
@@ -9,10 +8,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use rand::Rng;
 use url::percent_encoding;
-// use ring::{digest, hmac};
-use crypto::hmac::Hmac;
-use crypto::mac::Mac;
-use crypto::sha1::Sha1;
+use ring::{digest, hmac};
 
 #[derive(Clone, Debug)]
 pub struct Token<'a> {
@@ -126,8 +122,8 @@ fn gen_signature(
         encode(token_secret.unwrap_or(""))
     );
 
-    let mut hmac = Hmac::new(Sha1::new(), key.as_ref());
-    hmac.input(base.as_bytes());
+    let s_key = hmac::SigningKey::new(&digest::SHA1, key.as_ref());
+    let signature = hmac::sign(&s_key, base.as_bytes());
 
-    base64::encode(&hmac.result().code())
+    base64::encode(signature.as_ref())
 }
