@@ -29,12 +29,12 @@ impl<'a> Token<'a> {
     }
 }
 
-pub fn authorize<'b>(
+pub fn authorize(
     method: &str,
     uri: &str,
     consumer: &Token,
     token: Option<&Token>,
-    params: Option<HashMap<&'static str, Cow<'b, str>>>,
+    params: Option<HashMap<&str, Cow<str>>>,
 ) -> String {
     let mut params = params.unwrap_or_else(HashMap::new);
     let timestamp = time::now_utc().to_timespec().sec.to_string();
@@ -97,7 +97,7 @@ fn encode(s: &str) -> String {
     percent_encoding::percent_encode(s.as_bytes(), StrictEncodeSet).collect()
 }
 
-fn to_query<'a>(params: &HashMap<&'static str, Cow<'a, str>>) -> String {
+fn to_query(params: &HashMap<&str, Cow<str>>) -> String {
     let mut pairs: Vec<_> = params
         .iter()
         .map(|(k, v)| format!("{}={}", encode(k), encode(v)))
