@@ -7,14 +7,19 @@
 extern crate oauth1;
 extern crate reqwest;
 
+use oauth1::Token;
+use reqwest::Client;
+use reqwest::header::Authorization;
+
 pub fn main() {
+    let client = Client::new();
     let url = "https://api.twitter.com/1.1/account/verify_credentials.json";
     let res = client.get(url)
         .header(Authorization(oauth1::authorize(
             "GET",
             url,
-            Token::new("consumer_key", "consumer_secret"),
-            Some(Token::new("auth_token", "auth_token_secret")),
+            &Token::new("consumer_key", "consumer_secret"),
+            Some(&Token::new("auth_token", "auth_token_secret")),
             None,
         )))
         .send().unwrap();
