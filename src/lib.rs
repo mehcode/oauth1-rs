@@ -4,6 +4,12 @@ extern crate ring;
 extern crate time;
 extern crate url;
 
+#[cfg(feature = "serde")]
+extern crate serde;
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde_derive;
+
 use std::borrow::Cow;
 use std::collections::HashMap;
 use rand::Rng;
@@ -11,6 +17,7 @@ use url::percent_encoding;
 use ring::{digest, hmac};
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serialize", derive(Deserialize, Serialize))]
 pub struct Token<'a> {
     pub key: Cow<'a, str>,
     pub secret: Cow<'a, str>,
