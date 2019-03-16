@@ -6,7 +6,9 @@ extern crate url;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use rand::Rng;
+use std::iter;
+use rand::{Rng, thread_rng};
+use rand::distributions::Alphanumeric;
 use url::percent_encoding;
 use ring::{digest, hmac};
 
@@ -38,7 +40,9 @@ pub fn authorize(
 ) -> String {
     let mut params = params.unwrap_or_else(HashMap::new);
     let timestamp = time::now_utc().to_timespec().sec.to_string();
-    let nonce: String = rand::thread_rng().gen_ascii_chars().take(32).collect();
+    let mut rng = thread_rng();
+    let nonce: String = iter::repeat(())
+            .map(|()| rng.sample(Alphanumeric)).take(32).collect();
 
     params.insert("oauth_consumer_key", consumer.key.clone().into());
     params.insert("oauth_nonce", nonce.into());
