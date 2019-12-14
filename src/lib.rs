@@ -8,7 +8,8 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use rand::Rng;
 use url::percent_encoding;
-use ring::{digest, hmac};
+use ring::hmac;
+use ring::hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY;
 
 #[derive(Clone, Debug)]
 pub struct Token<'a> {
@@ -122,7 +123,7 @@ fn gen_signature(
         encode(token_secret.unwrap_or(""))
     );
 
-    let s_key = hmac::SigningKey::new(&digest::SHA1, key.as_ref());
+    let s_key = hmac::Key::new(HMAC_SHA1_FOR_LEGACY_USE_ONLY, key.as_ref());
     let signature = hmac::sign(&s_key, base.as_bytes());
 
     base64::encode(signature.as_ref())
