@@ -8,9 +8,15 @@ documentation = "https://docs.rs/oauth1"
 repository = "https://github.com/mehcode/oauth1-rs"
 keywords = ["oauth", "oauth1"]
 
+[features]
+serialize = ["serde", "serde_derive"]
+
 [dependencies]
 time = "0.1"
 rand = "0.3"
 url = "1.5"
 ring = "0.16.9"
 base64 = "0.7.0"
+
+serde = { version = "1", optional = true }
+serde_derive = { version = "1", optional = true }
