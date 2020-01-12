@@ -1,24 +1,12 @@
-extern crate base64;
-extern crate rand;
-extern crate ring;
-extern crate time;
-extern crate url;
-
-#[cfg(feature = "serde")]
-extern crate serde;
-#[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde_derive;
-
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC};
+use rand::distributions::{Alphanumeric, Distribution};
+use rand::thread_rng;
+use ring::hmac::{self, HMAC_SHA1_FOR_LEGACY_USE_ONLY};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use rand::Rng;
-use url::percent_encoding;
-use ring::hmac;
-use ring::hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY;
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serialize", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Token<'a> {
     pub key: Cow<'a, str>,
     pub secret: Cow<'a, str>,
@@ -45,8 +33,9 @@ pub fn authorize(
     params: Option<HashMap<&str, Cow<str>>>,
 ) -> String {
     let mut params = params.unwrap_or_else(HashMap::new);
-    let timestamp = time::now_utc().to_timespec().sec.to_string();
-    let nonce: String = rand::thread_rng().gen_ascii_chars().take(32).collect();
+    let timestamp = time::OffsetDateTime::now().timestamp().to_string();
+
+    let nonce: String = Alphanumeric.sample_iter(thread_rng()).take(32).collect();
 
     params.insert("oauth_consumer_key", consumer.key.clone().into());
     params.insert("oauth_nonce", nonce.into());
@@ -88,21 +77,14 @@ struct StrictEncodeSet;
 // This is required by
 // OAuth Core 1.0, section 5.1. "Parameter Encoding"
 // https://oauth.net/core/1.0/#encoding_parameters
-impl percent_encoding::EncodeSet for StrictEncodeSet {
-    #[inline]
-    fn contains(&self, byte: u8) -> bool {
-        !((byte >= 0x61 && byte <= 0x7a) || // A-Z
-          (byte >= 0x41 && byte <= 0x5a) || // a-z
-          (byte >= 0x30 && byte <= 0x39) || // 0-9
-          (byte == 0x2d) || // -
-          (byte == 0x2e) || // .
-          (byte == 0x5f) || // _
-          (byte == 0x7e)) // ~
-    }
-}
+static STRICT_ENCODE_SET: AsciiSet = NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'.')
+    .remove(b'_')
+    .remove(b'~');
 
 fn encode(s: &str) -> String {
-    percent_encoding::percent_encode(s.as_bytes(), StrictEncodeSet).collect()
+    percent_encoding::percent_encode(s.as_bytes(), &STRICT_ENCODE_SET).collect()
 }
 
 fn to_query(params: &HashMap<&str, Cow<str>>) -> String {

@@ -1,6 +1,7 @@
 [package]
 name = "oauth1"
-version = "0.3.0"
+edition = "2018"
+version = "1.0.0"
 authors = ["Ryan Leckey <leckey.ryan@gmail.com>"]
 description = "Basic OAuth1 library for Rust."
 license = "MIT/Apache-2.0"
@@ -8,15 +9,10 @@ documentation = "https://docs.rs/oauth1"
 repository = "https://github.com/mehcode/oauth1-rs"
 keywords = ["oauth", "oauth1"]
 
-[features]
-serialize = ["serde", "serde_derive"]
-
 [dependencies]
-time = "0.1"
-rand = "0.3"
-url = "1.5"
+time = "0.2.2"
+rand = "0.7.3"
 ring = "0.16.9"
-base64 = "0.7.0"
-
-serde = { version = "1", optional = true }
-serde_derive = { version = "1", optional = true }
+base64 = "0.11.0"
+percent-encoding = "2.1.0"
+serde = { version = "1", optional = true, features = [ "derive" ] }
