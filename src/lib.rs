@@ -3,7 +3,6 @@ use rand::distributions::{Alphanumeric, Distribution};
 use rand::thread_rng;
 use ring::hmac::{self, HMAC_SHA1_FOR_LEGACY_USE_ONLY};
 use std::borrow::Cow;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -30,35 +29,43 @@ pub fn authorize(
     uri: &str,
     consumer: &Token,
     token: Option<&Token>,
-    params: Option<HashMap<&str, Cow<str>>>,
+    params: Option<&[(&str, &str)]>,
+    realm: Option<&str>,
 ) -> String {
-    let mut params = params.unwrap_or_else(HashMap::new);
     let timestamp = time::OffsetDateTime::now().timestamp().to_string();
 
     let nonce: String = Alphanumeric.sample_iter(thread_rng()).take(32).collect();
 
-    params.insert("oauth_consumer_key", consumer.key.clone().into());
-    params.insert("oauth_nonce", nonce.into());
-    params.insert("oauth_signature_method", "HMAC-SHA1".into());
-    params.insert("oauth_timestamp", timestamp.into());
-    params.insert("oauth_version", "1.0".into());
+    let mut parameters: Vec<(&str, &str)> = vec![
+        ("oauth_consumer_key", &consumer.key),
+        ("oauth_nonce", &nonce),
+        ("oauth_signature_method", "HMAC-SHA1"),
+        ("oauth_timestamp", &timestamp),
+        ("oauth_version", "1.0"),
+    ];
     if let Some(tk) = token {
-        params.insert("oauth_token", tk.key.as_ref().into());
+        parameters.push(("oauth_token", &tk.key));
     }
 
+    let mut signature_params = parameters.clone();
+    if let Some(unwrapped_params) = params {
+        signature_params.extend(unwrapped_params);
+    }
     let signature = gen_signature(
         method,
         uri,
-        &to_query(&params),
+        &to_query(&signature_params),
         &consumer.secret,
         token.map(|t| t.secret.as_ref()),
     );
 
-    params.insert("oauth_signature", signature.into());
+    parameters.push(("oauth_signature", &signature));
+    if let Some(unwrapped_realm) = realm {
+        parameters.push(("realm", unwrapped_realm));
+    }
 
-    let mut pairs = params
+    let mut pairs = parameters
         .iter()
-        .filter(|&(k, _)| k.starts_with("oauth_"))
         .map(|(k, v)| format!("{}=\"{}\"", k, encode(v)))
         .collect::<Vec<_>>();
 
@@ -87,7 +94,7 @@ fn encode(s: &str) -> String {
     percent_encoding::percent_encode(s.as_bytes(), &STRICT_ENCODE_SET).collect()
 }
 
-fn to_query(params: &HashMap<&str, Cow<str>>) -> String {
+fn to_query(params: &[(&str, &str)]) -> String {
     let mut pairs: Vec<_> = params
         .iter()
         .map(|(k, v)| format!("{}={}", encode(k), encode(v)))
