@@ -30,25 +30,26 @@ pub fn authorize(
     consumer: &Token,
     token: Option<&Token>,
     params: Option<&[(&str, &str)]>,
-    realm: Option<&str>
+    realm: Option<&str>,
 ) -> String {
     let timestamp = time::OffsetDateTime::now().timestamp().to_string();
 
     let nonce: String = Alphanumeric.sample_iter(thread_rng()).take(32).collect();
 
     let mut parameters: Vec<(&str, &str)> = vec![
-    ("oauth_consumer_key", &consumer.key),
-    ("oauth_nonce", &nonce),
-    ("oauth_signature_method", "HMAC-SHA1"),
-    ("oauth_timestamp", &timestamp),
-    ("oauth_version", "1.0")];
+        ("oauth_consumer_key", &consumer.key),
+        ("oauth_nonce", &nonce),
+        ("oauth_signature_method", "HMAC-SHA1"),
+        ("oauth_timestamp", &timestamp),
+        ("oauth_version", "1.0"),
+    ];
     if let Some(tk) = token {
         parameters.push(("oauth_token", &tk.key));
     }
 
     let mut signature_params = parameters.clone();
-    if let Some(unwrapped_params) = params{
-    signature_params.extend(unwrapped_params);
+    if let Some(unwrapped_params) = params {
+        signature_params.extend(unwrapped_params);
     }
     let signature = gen_signature(
         method,
