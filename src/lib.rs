@@ -4,6 +4,7 @@ use rand::thread_rng;
 use ring::hmac::{self, HMAC_SHA1_FOR_LEGACY_USE_ONLY};
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::time::SystemTime;
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -33,7 +34,12 @@ pub fn authorize(
     params: Option<HashMap<&str, Cow<str>>>,
 ) -> String {
     let mut params = params.unwrap_or_else(HashMap::new);
-    let timestamp = time::OffsetDateTime::now().timestamp().to_string();
+    // duration_since might fail if the system clock is set to before the UNIX epoch.
+    // Handling this by just setting timestamp to 0 in that case
+    let timestamp = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .map_or(0, |v| v.as_secs())
+        .to_string();
 
     let nonce: String = Alphanumeric.sample_iter(thread_rng()).take(32).collect();
 
