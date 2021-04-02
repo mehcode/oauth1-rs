@@ -12,7 +12,7 @@ keywords = ["oauth", "oauth1"]
 [dependencies]
 time = "0.2.2"
 rand = "0.7.3"
-ring = "0.16.9"
+ring = "0.16.20"
 base64 = "0.11.0"
 percent-encoding = "2.1.0"
 serde = { version = "1", optional = true, features = [ "derive" ] }
