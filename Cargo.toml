@@ -10,7 +10,6 @@ repository = "https://github.com/mehcode/oauth1-rs"
 keywords = ["oauth", "oauth1"]
 
 [dependencies]
-time = "0.2.2"
 rand = "0.7.3"
 ring = "0.16.9"
 base64 = "0.11.0"
