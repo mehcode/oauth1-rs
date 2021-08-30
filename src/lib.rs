@@ -32,6 +32,7 @@ pub fn authorize(
     consumer: &Token,
     token: Option<&Token>,
     params: Option<HashMap<&str, Cow<str>>>,
+    realm: Option<&str>,
 ) -> String {
     let mut params = params.unwrap_or_else(HashMap::new);
     // duration_since might fail if the system clock is set to before the UNIX epoch.
@@ -69,6 +70,10 @@ pub fn authorize(
         .collect::<Vec<_>>();
 
     pairs.sort();
+
+    if let Some(realm) = realm {
+        pairs.insert(0, format!("realm=\"{}\"", realm));
+    }
 
     format!("OAuth {}", pairs.join(", "))
 }
